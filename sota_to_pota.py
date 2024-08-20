@@ -3,7 +3,7 @@
 """
 Created on Mon Aug 19 22:22:35 2024
 
-@author: blaj
+@author: Gabriel AJ6X
 """
 
 import argparse
@@ -77,6 +77,10 @@ freq_to_band = {
     '1240MHz':'23CM',
     }
 
+mode_fix = {
+    'DATA' : 'FT8',
+    }
+
 sota_to_pota_dict = {
     'MyCallsign' : 'OPERATOR',
     'Callsign'   : 'CALL',
@@ -147,6 +151,7 @@ pota_qsos = pd.DataFrame(pota_qsos_list).rename(columns=sota_to_pota_dict)[pota_
 pota_qsos['BAND'] = pota_qsos['BAND'].map(freq_to_band)
 pota_qsos['QSO_DATE'] = pota_qsos['QSO_DATE'].map(sota_to_pota_date)
 pota_qsos['TIME_ON'] = pota_qsos['TIME_ON'].map(sota_to_pota_time)
+pota_qsos['MODE'] = pota_qsos['MODE'].map(mode_fix)
 pota_qsos['SIG_INFO'] = pota_qsos['SIG_INFO'].fillna('')
 pota_qsos['SIG'] = pota_qsos['SIG'].fillna('')
 
