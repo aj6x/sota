@@ -79,6 +79,7 @@ freq_to_band = {
 
 mode_fix = {
     'DATA' : 'FT8',
+    'DV'   : 'DIGITALVOICE',
     }
 
 sota_to_pota_dict = {
@@ -127,7 +128,7 @@ for irow in range(len(activator_log)):
     potas = sota_summits.loc[sota_summits['SummitCode']==summit]['Pota'].iloc[0]
     sigs = ''
     if len(potas)>0:
-        qso['MY_SIG_INFO']='POTA'
+        qso['MY_SIG']='POTA'
         check_s2s = s2s_log.loc[(s2s_log['Callsign']==qso['Callsign'])&(s2s_log['Date']==qso['Date'])&(s2s_log['Time']==qso['Time'])&(s2s_log['Band']==qso['Band'])&(s2s_log['Mode']==qso['Mode'])]
         if len(check_s2s)>0:
             remote_summit = check_s2s.iloc[0]['OtherSummit']
@@ -135,13 +136,13 @@ for irow in range(len(activator_log)):
             sigs = uniques(remote_potas.split('/'))
         my_sigs = uniques(potas.split('/'))
         for my_sig in my_sigs:
-            qso['MY_SIG'] = my_sig
+            qso['MY_SIG_INFO'] = my_sig
             if len(sigs)==0:
                 pota_qsos_list.append(qso)
             else:
-                qso['SIG_INFO'] = 'POTA'
+                qso['SIG'] = 'POTA'
                 for sig in sigs:
-                    qso['SIG'] = sig
+                    qso['SIG_INFO'] = sig
                     pota_qsos_list.append(qso)
     if (irow+1)%32 == 0:
         print('.',end='',flush=True)
