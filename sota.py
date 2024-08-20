@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Aug 19 22:22:35 2024
+
+@author: blaj
+"""
+
+import pandas as pd
+
+activator = 'data/AJ6X_activator_20240813.csv'
+s2s = 'data/AJ6X_s2s_20240820.csv'
+
+def get_activator_log(fname):
+    column_names = ['Version','MyCallsign','SummitCode','Date','Time','Band','Mode','Callsign','Unknown','Comment',]
+    activator_log = pd.read_csv(fname,names=column_names,index_col=False).drop(columns=['Version','Unknown',])
+    activator_log['Comment'] = activator_log['Comment'].fillna('')
+    return activator_log
+
+def get_s2s_log(fname):
+    column_names = ['Version','MyCallsign','SummitCode','Date','Time','Band','Mode','Callsign','OtherSummit','Comment','ChaserPoints','ActivatorPoints',]
+    activator_log = pd.read_csv(fname,names=column_names,index_col=False).drop(columns=['Version',])
+    activator_log['Comment'] = activator_log['Comment'].fillna('')
+    return activator_log
+
+def get_sota_summits():
+    sota_summits_dtype = {
+        'SummitCode': 'string',
+        'AssociationName': 'string',
+        'RegionName': 'string',
+        'SummitName': 'string',
+        'AltM': 'int',
+        'AltFt': 'int',
+        'GridRef1': 'string',
+        'GridRef2': 'string',
+        'Longitude': 'float',
+        'Latitude': 'float',
+        'Points': 'int',
+        'BonusPoints': 'int',
+        'ValidFrom': 'string',
+        'ValidTo': 'string',
+        'ActivationCount': 'int',
+        'ActivationDate': 'string',
+        'ActivationCall': 'string',
+        'ParkName': 'string',
+        'Pota': 'string',
+        }
+    sota_summits = pd.read_csv('data/sota_pota.csv',header=0,dtype=sota_summits_dtype)
+    sota_summits['Pota'] = sota_summits['Pota'].fillna('')
+    return sota_summits
+
+def uniques(mylist):
+    uniquelist = []
+    for item in mylist:
+        if item not in uniquelist:
+            uniquelist.append(item)
+    return uniquelist
+
+freq_to_band = {
+    '1.8MHz' :'160M',
+    '3.5MHz' :'80M',
+    '5MHz'   :'60M',
+    '7MHz'   :'40M',
+    '10MHz'  :'30M',
+    '14MHz'  :'20M',
+    '18MHz'  :'17M',
+    '21MHz'  :'15M',
+    '24MHz'  :'12M',
+    '28MHz'  :'10M',
+    '50MHz'  :'6M',
+    '144MHz' :'2M',
+    '433MHz' :'70CM',
+    '1240MHz':'23CM',
+    }
+
+sota_to_pota_dict = {
+    'MyCallsign' : 'OPERATOR',
+    'Callsign'   : 'CALL',
+    'Date'       : 'QSO_DATE',   # 8-digit number in YYYYMMDD format
+    'Time'       : 'TIME_ON',    #entered as HHMM
+    'Band'       : 'BAND',
+    'Mode'       : 'MODE',
+    #'State'     : 'MY_STATE',  # confusing for now. Exact location from PB data?
+    }
+
+pota_keys = ['OPERATOR', 'QSO_DATE', 'TIME_ON', 'BAND', 'MODE', 'CALL', 'MY_SIG_INFO', 'MY_SIG', 'SIG_INFO', 'SIG'];
+
+def sota_to_pota_date(date):
+    day,month,year = date.split('/')
+    return f'{int(year):04d}{int(month):02d}{int(day):02d}'
+
+def sota_to_pota_time(time):
+    hour,minute = time.split(':')
+    return f'{int(hour):02d}{int(minute):02d}'
+
+def export_adif(dataframe,filename):
+    with open(filename,'w+') as file_handle:
+        file_handle.write('AJ6X ADIF SOTA to POTA Conversion\n<PROGRAMID:9>AJ6X SOTA\n<PROGRAMVERSION:5>0.0.1\n\n<EOH>\n\n')
+        nqsos = len(dataframe)
+        for iqso in range(nqsos):
+            qso = dataframe.iloc[iqso].to_dict()
+            record = ''
+            for key in qso.keys():
+                value = qso[key]
+                if len(value)>0:
+                    record += f'<{key}:{len(value)}>{value} '
+            record += '<EOR>\n'
+            file_handle.write(record)
+    
+activator_log = get_activator_log(activator)
+s2s_log = get_s2s_log(s2s)
+sota_summits = get_sota_summits()
+
+print('\nCollecting POTA QSOs:')
+pota_qsos_list = []
+for irow in range(len(activator_log)):
+    qso = activator_log.iloc[irow].to_dict()
+    summit = qso['SummitCode']
+    potas = sota_summits.loc[sota_summits['SummitCode']==summit]['Pota'].iloc[0]
+    sigs = ''
+    if len(potas)>0:
+        qso['MY_SIG_INFO']='POTA'
+        check_s2s = s2s_log.loc[(s2s_log['Callsign']==qso['Callsign'])&(s2s_log['Date']==qso['Date'])&(s2s_log['Time']==qso['Time'])&(s2s_log['Band']==qso['Band'])&(s2s_log['Mode']==qso['Mode'])]
+        if len(check_s2s)>0:
+            remote_summit = check_s2s.iloc[0]['OtherSummit']
+            remote_potas = sota_summits.loc[sota_summits['SummitCode']==remote_summit]['Pota'].iloc[0]
+            sigs = uniques(remote_potas.split('/'))
+        my_sigs = uniques(potas.split('/'))
+        for my_sig in my_sigs:
+            qso['MY_SIG'] = my_sig
+            if len(sigs)==0:
+                pota_qsos_list.append(qso)
+            else:
+                qso['SIG_INFO'] = 'POTA'
+                for sig in sigs:
+                    qso['SIG'] = sig
+                    pota_qsos_list.append(qso)
+    if (irow+1)%20 == 0:
+        print('.',end='')
+print('\nDone.')
+
+pota_qsos = pd.DataFrame(pota_qsos_list).rename(columns=sota_to_pota_dict)[pota_keys]
+pota_qsos['BAND'] = pota_qsos['BAND'].map(freq_to_band)
+pota_qsos['QSO_DATE'] = pota_qsos['QSO_DATE'].map(sota_to_pota_date)
+pota_qsos['TIME_ON'] = pota_qsos['TIME_ON'].map(sota_to_pota_time)
+pota_qsos['SIG_INFO'] = pota_qsos['SIG_INFO'].fillna('')
+pota_qsos['SIG'] = pota_qsos['SIG'].fillna('')
+
+activated_parks = uniques(pota_qsos['MY_SIG'].values)
+for activated_park in activated_parks:
+    park_qsos = pota_qsos.loc[pota_qsos['MY_SIG']==activated_park]
+    my_call = park_qsos.iloc[0]['OPERATOR']
+    first_date = park_qsos.iloc[0]['QSO_DATE']
+    filename = f'out/{my_call}@{activated_park}-{first_date}.adi'
+    export_adif(park_qsos,filename)
+
+

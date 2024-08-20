@@ -1,3 +1,5 @@
 *.DS_Store
 *.sq3
 *_activator_*.csv
+*_s2s_*.csv
+*.adi
