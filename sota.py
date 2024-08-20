@@ -6,10 +6,14 @@ Created on Mon Aug 19 22:22:35 2024
 @author: blaj
 """
 
+import argparse
 import pandas as pd
 
-activator = 'data/AJ6X_activator_20240813.csv'
-s2s = 'data/AJ6X_s2s_20240820.csv'
+parser = argparse.ArgumentParser(prog="AJ6X SOTA to POTA", description='Automatic conversion of SOTA logs (in csv format) to POTA logs (including S2S resulting in P2P info).', epilog='Outputs: individual files for each activated POTA park.')
+parser.add_argument("--activator", default='', type=str, help="Activator file name downloaded from https://www.sotadata.org.uk/en/logs/activator > Download complete log")
+parser.add_argument("--s2s", default='', type=str, help="S2S file name downloaded from https://www.sotadata.org.uk/en/logs/s2s > Download complete log")
+parser.add_argument("--date", default='00000000', type=str, help="Earliest date to include in POTA format: YYYYMMDD. default 00000000 (everything)")
+args = parser.parse_args()
 
 def get_activator_log(fname):
     column_names = ['Version','MyCallsign','SummitCode','Date','Time','Band','Mode','Callsign','Unknown','Comment',]
@@ -107,11 +111,11 @@ def export_adif(dataframe,filename):
             record += '<EOR>\n'
             file_handle.write(record)
     
-activator_log = get_activator_log(activator)
-s2s_log = get_s2s_log(s2s)
+activator_log = get_activator_log(args.activator)
+s2s_log = get_s2s_log(args.s2s)
 sota_summits = get_sota_summits()
 
-print('\nCollecting POTA QSOs:')
+print('\nCollecting POTA QSOs:',flush=True)
 pota_qsos_list = []
 for irow in range(len(activator_log)):
     qso = activator_log.iloc[irow].to_dict()
@@ -135,9 +139,9 @@ for irow in range(len(activator_log)):
                 for sig in sigs:
                     qso['SIG'] = sig
                     pota_qsos_list.append(qso)
-    if (irow+1)%20 == 0:
-        print('.',end='')
-print('\nDone.')
+    if (irow+1)%32 == 0:
+        print('.',end='',flush=True)
+print(f'\nDone. Found {len(pota_qsos_list)} QSO - POTA combinations.',flush=True)
 
 pota_qsos = pd.DataFrame(pota_qsos_list).rename(columns=sota_to_pota_dict)[pota_keys]
 pota_qsos['BAND'] = pota_qsos['BAND'].map(freq_to_band)
@@ -146,6 +150,10 @@ pota_qsos['TIME_ON'] = pota_qsos['TIME_ON'].map(sota_to_pota_time)
 pota_qsos['SIG_INFO'] = pota_qsos['SIG_INFO'].fillna('')
 pota_qsos['SIG'] = pota_qsos['SIG'].fillna('')
 
+#keep only QSOs after args.date
+pota_qsos = pota_qsos.loc[pota_qsos['QSO_DATE']>=args.date]
+
+print('\nSaving POTA log files:',flush=True)
 activated_parks = uniques(pota_qsos['MY_SIG'].values)
 for activated_park in activated_parks:
     park_qsos = pota_qsos.loc[pota_qsos['MY_SIG']==activated_park]
@@ -153,5 +161,7 @@ for activated_park in activated_parks:
     first_date = park_qsos.iloc[0]['QSO_DATE']
     filename = f'out/{my_call}@{activated_park}-{first_date}.adi'
     export_adif(park_qsos,filename)
+    print(f'\t{activated_park} => {filename}',flush=True)
+print('Done.\n73 de AJ6X\n')
 
 
