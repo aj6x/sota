@@ -80,6 +80,9 @@ freq_to_band = {
 mode_fix = {
     'DATA' : 'FT8',
     'DV'   : 'DIGITALVOICE',
+    'SSB'  : 'SSB',
+    'CW'   : 'CW',
+    'FM'   : 'FM',
     }
 
 sota_to_pota_dict = {
@@ -92,7 +95,7 @@ sota_to_pota_dict = {
     #'State'     : 'MY_STATE',  # confusing for now. Exact location from PB data?
     }
 
-pota_keys = ['OPERATOR', 'QSO_DATE', 'TIME_ON', 'BAND', 'MODE', 'CALL', 'MY_SIG_INFO', 'MY_SIG', 'SIG_INFO', 'SIG'];
+pota_keys = ['OPERATOR', 'QSO_DATE', 'TIME_ON', 'BAND', 'MODE', 'CALL', 'MY_SIG', 'MY_SIG_INFO', 'SIG', 'SIG_INFO'];
 
 def sota_to_pota_date(date):
     day,month,year = date.split('/')
@@ -160,9 +163,9 @@ pota_qsos['SIG'] = pota_qsos['SIG'].fillna('')
 pota_qsos = pota_qsos.loc[pota_qsos['QSO_DATE']>=args.date]
 
 print('\nSaving POTA log files:',flush=True)
-activated_parks = uniques(pota_qsos['MY_SIG'].values)
+activated_parks = uniques(pota_qsos['MY_SIG_INFO'].values)
 for activated_park in activated_parks:
-    park_qsos = pota_qsos.loc[pota_qsos['MY_SIG']==activated_park]
+    park_qsos = pota_qsos.loc[pota_qsos['MY_SIG_INFO']==activated_park]
     my_call = park_qsos.iloc[0]['OPERATOR']
     first_date = park_qsos.iloc[0]['QSO_DATE']
     filename = f'out/{my_call}@{activated_park}-{first_date}.adi'
