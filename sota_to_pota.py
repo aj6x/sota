@@ -53,10 +53,10 @@ def get_sota_summits():
     sota_summits['Pota'] = sota_summits['Pota'].fillna('')
     return sota_summits
 
-def uniques(mylist):
+def uniques_nn(mylist):
     uniquelist = []
     for item in mylist:
-        if item not in uniquelist:
+        if (len(item)>0) and (item not in uniquelist):
             uniquelist.append(item)
     return uniquelist
 
@@ -136,11 +136,11 @@ for irow in range(len(activator_log)):
         if len(check_s2s)>0:
             remote_summit = check_s2s.iloc[0]['OtherSummit']
             remote_potas = sota_summits.loc[sota_summits['SummitCode']==remote_summit]['Pota'].iloc[0]
-            sigs = uniques(remote_potas.split('/'))
-        my_sigs = uniques(potas.split('/'))
+            sigs = uniques_nn(remote_potas.split('/'))
+        my_sigs = uniques_nn(potas.split('/'))
         for my_sig in my_sigs:
             qso['MY_SIG_INFO'] = my_sig
-            if len(sigs)==0:
+            if len(sigs) == 0:
                 pota_qsos_list.append(qso)
             else:
                 qso['SIG'] = 'POTA'
@@ -163,7 +163,7 @@ pota_qsos['SIG'] = pota_qsos['SIG'].fillna('')
 pota_qsos = pota_qsos.loc[pota_qsos['QSO_DATE']>=args.date]
 
 print('\nSaving POTA log files:',flush=True)
-activated_parks = uniques(pota_qsos['MY_SIG_INFO'].values)
+activated_parks = uniques_nn(pota_qsos['MY_SIG_INFO'].values)
 for activated_park in activated_parks:
     park_qsos = pota_qsos.loc[pota_qsos['MY_SIG_INFO']==activated_park]
     my_call = park_qsos.iloc[0]['OPERATOR']
