@@ -138,14 +138,17 @@ for irow in range(len(activator_log)):
             sigs = uniques_nn(remote_potas.split('/'))
         my_sigs = uniques_nn(potas.split('/'))
         for my_sig in my_sigs:
-            qso['MY_SIG_INFO'] = my_sig
+            qso1 = qso.copy()
+            qso1['MY_SIG_INFO'] = my_sig
             if len(sigs) == 0:
-                pota_qsos_list.append(qso)
+                pota_qsos_list.append(qso1)
+                #print(qso)
             else:
-                qso['SIG'] = 'POTA'
-                for sig in sigs:
-                    qso['SIG_INFO'] = sig
-                    pota_qsos_list.append(qso)
+                qso1['SIG'] = 'POTA'
+                for sig in sigs: 
+                    qso2 = qso1.copy()
+                    qso2['SIG_INFO'] = sig
+                    pota_qsos_list.append(qso2)
     if (irow+1)%32 == 0:
         print('.',end='',flush=True)
 print(f'\nDone. Found {len(pota_qsos_list)} QSO - POTA combinations.',flush=True)
