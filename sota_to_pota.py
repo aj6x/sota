@@ -163,13 +163,15 @@ pota_qsos = pota_qsos.loc[pota_qsos['QSO_DATE']>=args.date]
 
 print('\nSaving POTA log files:',flush=True)
 activated_parks = uniques_nn(pota_qsos['MY_SIG_INFO'].values)
-for activated_park in activated_parks:
-    park_qsos = pota_qsos.loc[pota_qsos['MY_SIG_INFO']==activated_park]
-    my_call = park_qsos.iloc[0]['OPERATOR']
-    first_date = park_qsos.iloc[0]['QSO_DATE']
-    filename = f'out/{my_call}@{activated_park}-{first_date}.adi'
-    export_adif(park_qsos,filename)
-    print(f'\t{activated_park} => {filename}',flush=True)
+operators = uniques_nn(pota_qsos['OPERATOR'].values)
+for operator in operators:
+    for activated_park in activated_parks:
+        park_qsos = pota_qsos.loc[pota_qsos['MY_SIG_INFO']==activated_park]
+        my_call = park_qsos.iloc[0]['OPERATOR']
+        first_date = park_qsos.iloc[0]['QSO_DATE']
+        filename = f'out/{operator}@{activated_park}-{first_date}.adi'
+        export_adif(park_qsos,filename)
+        print(f'\t{operator} \t{activated_park} \t=> \t{filename}',flush=True)
 print('Done.\n73 de AJ6X\n')
 
 
