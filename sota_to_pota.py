@@ -77,13 +77,12 @@ freq_to_band = {
     '1240MHz':'23CM',
     }
 
-mode_fix = {
-    'DATA' : 'FT8',
-    'DV'   : 'DIGITALVOICE',
-    'SSB'  : 'SSB',
-    'CW'   : 'CW',
-    'FM'   : 'FM',
-    }
+def mode_fix(mode):
+    if mode == 'DATA':
+        mode = 'FT8'
+    elif mode == 'DV':
+        mode = 'DIGITALVOICE'
+    return mode
 
 sota_to_pota_dict = {
     'MyCallsign' : 'OPERATOR',
