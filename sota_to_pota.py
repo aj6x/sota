@@ -151,7 +151,7 @@ for irow in range(len(activator_log)):
                     pota_qsos_list.append(qso2)
     if (irow+1)%32 == 0:
         print('.',end='',flush=True)
-print(f'\nDone. Found {len(pota_qsos_list)} QSO - POTA combinations.',flush=True)
+print(f'\nDone. Found {len(pota_qsos_list)} QSO x POTA combinations.',flush=True)
 
 pota_qsos = pd.DataFrame(pota_qsos_list).rename(columns=sota_to_pota_dict)[pota_keys]
 pota_qsos['BAND'] = pota_qsos['BAND'].map(freq_to_band)
@@ -172,7 +172,7 @@ for activated_park in activated_parks:
     for operator in operators:
         operator_park_qsos = park_qsos.loc[park_qsos['OPERATOR']==operator]
         first_date = operator_park_qsos['QSO_DATE'].values.min()
-        filename = f'{operator}@{activated_park}-{first_date}.adi'
+        filename = f'{operator.replace('/','-')}@{activated_park}-{first_date}.adi'
         export_adif(operator_park_qsos,'out/'+filename)
         print(f'\t{operator} \t{activated_park} \t=> \t{filename}',flush=True)
 print('Done.\n73 de AJ6X\n')
