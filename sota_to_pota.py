@@ -10,9 +10,9 @@ import argparse
 import pandas as pd
 
 parser = argparse.ArgumentParser(prog="AJ6X SOTA to POTA", description='Automatic conversion of SOTA logs (in csv format) to POTA logs (including S2S resulting in P2P info).', epilog='Outputs: individual files for each activated POTA park.')
-parser.add_argument("--activator", default='', type=str, help="Activator file name downloaded from https://www.sotadata.org.uk/en/logs/activator > Download complete log")
-parser.add_argument("--s2s", default='', type=str, help="S2S file name downloaded from https://www.sotadata.org.uk/en/logs/s2s > Download complete log")
-parser.add_argument("--date", default='00000000', type=str, help="Earliest date to include in POTA format: YYYYMMDD. default 00000000 (everything)")
+parser.add_argument("--activator", default='W7DLZ_activator_20250827.csv', type=str, help="Activator file name downloaded from https://www.sotadata.org.uk/en/logs/activator > Download complete log")
+parser.add_argument("--s2s", default='W7DLZ_s2s_20250825.csv', type=str, help="S2S file name downloaded from https://www.sotadata.org.uk/en/logs/s2s > Download complete log")
+parser.add_argument("--date", default='20240814', type=str, help="Earliest date to include in POTA format: YYYYMMDD. default 00000000 (everything)")
 args = parser.parse_args()
 
 def get_activator_log(fname):
