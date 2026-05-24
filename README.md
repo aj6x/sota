@@ -1,4 +1,4 @@
-# pota2sota
+# sota2pota
 
 A Python utility for converting **Summits on the Air (SOTA)** activator and summit-to-summit (S2S) log exports into **Parks on the Air (POTA)** ADIF log files.
 
