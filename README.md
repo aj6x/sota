@@ -90,7 +90,6 @@ W7DLZ@K-1234-20240814.adi
 
 ## Notes
 
-- The repository name is `pota2sota`, but the current script converts **SOTA to POTA**.
 - The script expects the input CSV formats exported by Sotadata.
 - Mode values such as `DATA` and `DV` are normalized to POTA-friendly values.
 - If a summit does not map to a POTA park, that QSO is not included in the generated POTA output.
